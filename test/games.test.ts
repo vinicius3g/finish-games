@@ -1,6 +1,46 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { parseGameInput, parseSteamLibrary, steamStorageError } from '../lib/games';
+import { GAMES_PER_PAGE, paginateGames, parseGameInput, parseSteamLibrary, steamStorageError, type Game } from '../lib/games';
+
+describe('paginateGames', () => {
+  const games: Game[] = Array.from({ length: 25 }, (_, index) => ({
+    id: String(index), title: `Game ${index}`, platform: 'PC', status: 'Zerado',
+    finished_at: null, hours: 0, ach: 0, ach_total: 0, rating: 0,
+    notes: null, cover: null, steam_appid: null, created_at: '',
+  }));
+
+  it('paginates without duplicating, omitting or reordering games', () => {
+    const pages = [1, 2, 3].map((page) => paginateGames(games, '', page));
+    assert.equal(pages[0].games.length, GAMES_PER_PAGE);
+    assert.deepEqual(pages.flatMap((page) => page.games), games);
+    assert.deepEqual([pages[2].start, pages[2].end, pages[2].pageCount], [25, 25, 3]);
+  });
+
+  it('filters before pagination, ignoring casing and outer whitespace', () => {
+    const result = paginateGames(games, '  GAME 2  ', 1);
+    assert.deepEqual(result.games.map((game) => game.title), ['Game 2', 'Game 20', 'Game 21', 'Game 22', 'Game 23', 'Game 24']);
+    assert.equal(result.total, 6);
+    assert.equal(result.pageCount, 1);
+  });
+
+  it('handles an empty library and no search results', () => {
+    for (const result of [paginateGames([], '', 1), paginateGames(games, 'missing', 3)]) {
+      assert.deepEqual(result.games, []);
+      assert.deepEqual([result.total, result.page, result.pageCount, result.start, result.end], [0, 1, 1, 0, 0]);
+    }
+  });
+
+  it('clamps the page after deletion or filtering and handles invalid pages', () => {
+    assert.equal(paginateGames(games.slice(0, 24), '', 3).page, 2);
+    assert.equal(paginateGames(games, 'Game 24', 3).page, 1);
+    for (const page of [0, -1, NaN, Infinity]) assert.equal(paginateGames(games, '', page).page, 1);
+    assert.equal(paginateGames(games, '', 2.8).page, 2);
+  });
+
+  it('does not add an empty page for exact multiples', () => {
+    assert.equal(paginateGames(games.slice(0, 24), '', 2).pageCount, 2);
+  });
+});
 
 describe('steamStorageError', () => {
   it('identifies Supabase authentication failures even without an error code', () => {

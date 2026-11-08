@@ -22,6 +22,24 @@ export interface Game {
 
 export type GameWrite = Partial<Omit<Game, 'created_at'>>;
 
+export const GAMES_PER_PAGE = 12;
+
+export function paginateGames(games: Game[], query: string, requestedPage: number) {
+  const filtered = games.filter((game) => game.title.toLowerCase().includes(query.trim().toLowerCase()));
+  const total = filtered.length;
+  const pageCount = Math.max(1, Math.ceil(total / GAMES_PER_PAGE));
+  const page = Math.min(pageCount, Math.max(1, Number.isFinite(requestedPage) ? Math.trunc(requestedPage) : 1));
+  const offset = (page - 1) * GAMES_PER_PAGE;
+  return {
+    games: filtered.slice(offset, offset + GAMES_PER_PAGE),
+    total,
+    page,
+    pageCount,
+    start: total ? offset + 1 : 0,
+    end: Math.min(offset + GAMES_PER_PAGE, total),
+  };
+}
+
 export function steamStorageError(status: number, code?: string, operation: 'load' | 'save' | 'update' = 'load'): string {
   if (status === 401) {
     return 'O Supabase recusou a autenticacao. Confira SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY: use uma chave de servidor valida do mesmo projeto e reinicie o app apos alterar o ambiente.';

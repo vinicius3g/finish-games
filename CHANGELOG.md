@@ -5,6 +5,13 @@ Versions follow Semantic Versioning (MAJOR.MINOR.PATCH).
 
 ## [Unreleased]
 
+### Added
+
+- Client-side pagination with 12 games per page, result counts, accessible navigation, search reset, and automatic page adjustment after deletion.
+- Responsive game grid, fixed-ratio covers with fallbacks, status badges, achievement progress, and icon actions.
+- Staggered GSAP card entrances with cleanup and reduced-motion support.
+- Unit tests and documentation for pagination behavior and edge cases.
+
 ## [0.1.0] - 2026-11-06
 
 First recorded version, consolidating existing features and fixes.

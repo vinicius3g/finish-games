@@ -47,6 +47,9 @@ Se a sincronizacao Steam informar que o Supabase recusou a autenticacao, confira
 ## Funcionalidades
 
 - Cadastro, edição, busca e exclusão de jogos.
+- Listagem paginada com 12 jogos por pagina, contagem de resultados e controles de primeira, anterior, proxima e ultima pagina. A busca ignora maiusculas e espacos nas extremidades e volta a primeira pagina; exclusoes ajustam automaticamente paginas que deixaram de existir.
+- Grid responsivo com tres colunas no desktop, duas no tablet e uma no celular. Cards mostram status, nota, progresso de conquistas e acoes de edicao/exclusao; capas ausentes ou indisponiveis usam um placeholder.
+- Animacoes de entrada escalonadas com GSAP ao carregar, buscar ou trocar de pagina, com limpeza ao desmontar. A preferencia `prefers-reduced-motion` desativa animacoes e rolagem suave.
 - Estados, plataforma, data de conclusão, horas, conquistas, nota, anotações e capa.
 - Contadores de jogos concluídos, horas e progresso por ano.
 - Busca de títulos/capas via IGDB.
@@ -65,6 +68,8 @@ npm run build
 ```
 
 O teste unitário cobre a validação de payloads usada pela rota de jogos. O build valida a compilação de produção; as integrações externas exigem credenciais reais para um teste ponta a ponta.
+
+Os testes de `paginateGames(games, query, requestedPage)` cobrem ordem, limites, busca, lista vazia e ajuste apos exclusao. A funcao nao altera os jogos de entrada e retorna `games`, `total`, `page`, `pageCount`, `start` e `end`; `GAMES_PER_PAGE` define o tamanho fixo de pagina. A paginacao e local: ela limita os cards renderizados, nao o carregamento de dados da API. As anotacoes ficam limitadas a duas linhas no card; o texto completo permanece disponivel na edicao.
 
 ## Deploy serverless
 
